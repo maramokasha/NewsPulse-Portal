@@ -1,0 +1,42 @@
+name: Docker CI
+
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Build the Docker image
+        run: docker build -t newspulse-portal .
+
+      - name: Start the stack with Docker Compose
+        run: docker compose up -d --build
+
+      - name: Wait for the web container to become healthy
+        run: |
+          for i in $(seq 1 30); do
+            status=$(docker inspect --format='{{.State.Health.Status}}' newspulse-web)
+            echo "Health status: $status"
+            if [ "$status" = "healthy" ]; then exit 0; fi
+            sleep 5
+          done
+          docker compose logs
+          exit 1
+
+      - name: Call the health endpoint
+        run: curl -fs http://localhost:8080/health.php
+
+      - name: Show container status
+        if: always()
+        run: docker compose ps
+
+      - name: Stop the stack
+        if: always()
+        run: docker compose down -v
