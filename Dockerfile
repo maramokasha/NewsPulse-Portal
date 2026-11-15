@@ -15,4 +15,8 @@ RUN mkdir -p /var/www/html/uploads \
 
 EXPOSE 80
 
+# Mark the container healthy only when the app and database respond
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD curl -fs http://localhost/health.php || exit 1
+
 CMD ["apache2-foreground"]
