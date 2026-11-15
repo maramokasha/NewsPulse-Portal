@@ -1,0 +1,16 @@
+# User-uploaded files (runtime data, not source code)
+src/uploads/*
+!src/uploads/.gitkeep
+
+# Environment variables and secrets
+.env
+
+# Database backups
+backup/
+*.sql.bak
+
+# OS and editor files
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
