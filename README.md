@@ -89,6 +89,8 @@ NewsPulse-Portal/
 |-- docs/
 |   |-- screenshots/      # assignment screenshots
 |   |-- notes.md          # technical notes
+|-- Makefile
+|-- .github/workflows/docker-ci.yml
 |-- Dockerfile
 |-- docker-compose.yml
 |-- .dockerignore
@@ -97,6 +99,28 @@ NewsPulse-Portal/
 |-- README.md
 ```
 
+## Bonus Features
+
+| Bonus | Implementation |
+| --- | --- |
+| A. Docker Compose | `docker-compose.yml` runs the PHP/Apache web service and the MySQL database together, with named volumes and a database healthcheck. |
+| B. CI | `.github/workflows/docker-ci.yml` builds the image, starts the stack, waits until it is healthy and calls the health endpoint on every push and pull request. |
+| C. Multi-stage build | The `Dockerfile` has a `builder` stage that compiles the `mysqli` extension and a runtime stage that copies only the compiled extension. |
+| D. Healthcheck | `src/health.php` checks the database connection; the `Dockerfile` `HEALTHCHECK` calls it every 30 seconds. |
+| E. Makefile | `make build`, `make run`, `make stop`, `make restart`, `make down`, `make logs`, `make ps`, `make health`, `make clean`. |
+| G. PR workflow | Bonus work was done on `feature/docker-bonuses` and merged into `main` through a Pull Request. |
+
+### Useful commands
+```bash
+make run      # build and start the application
+make health   # call http://localhost:8080/health.php
+make stop     # stop the containers (data is kept)
+make clean    # remove containers and volumes
+```
+The `make` command is optional; every target is a short alias for a `docker compose` command. On Windows, install it with `winget install ezwinports.make`.
+
+### Health endpoint
+`GET http://localhost:8080/health.php` returns `{"status":"ok","database":"up"}` with HTTP 200 when the application and the database are working, and HTTP 503 otherwise.
 ## Troubleshooting
 - **Port 8080 is already in use:** change the host port in `docker-compose.yml`.
 - **XAMPP is running:** stop Apache and MySQL in XAMPP to avoid port conflicts.
@@ -104,3 +128,5 @@ NewsPulse-Portal/
 
 ## Attribution
 This is an original university coursework project by Maram Okasha. It was first developed as `assignment4/news_system` in the repository `maramokasha/NewsPulse-API` and is containerized and published here as a standalone project. No third-party open-source application code is included. Bootstrap and Font Awesome are loaded from public CDNs under their own licenses.
+
+
