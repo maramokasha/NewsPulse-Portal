@@ -35,3 +35,20 @@ Decide what must never enter the repository **before** the first commit. User-up
 - Timestamps are shown in UTC because the container timezone is UTC.
 - `view_news.php` expects a default image at `uploads/default.png` for articles without a picture.
 - The default database passwords in `docker-compose.yml` are for local development only; use a `.env` file for any real deployment.
+
+## 5. Multi-stage build: measured result (Bonus C)
+
+I split the Dockerfile into a `builder` stage (compiles the `mysqli` extension) and a runtime stage (copies only the compiled extension). I measured the images with `docker images`:
+
+| Image | Content size | Disk usage |
+| --- | --- | --- |
+| `single-stage` | 177 MB | 713 MB |
+| `multi-stage` | 177 MB | 713 MB |
+
+The size did not change. This application has no real build step (no Composer or npm packages), and both stages start from the same `php:8.3-apache` base image, so there is little build-only content to discard. The multi-stage structure is still useful as a pattern: when a project later needs build tools (for example Composer), they stay in the builder stage and never reach the final image.
+
+## 6. Other problems and lessons
+
+- The first `git push` of the CI workflow failed with `Could not resolve host: github.com`. It was a temporary network problem, the commit was safe locally, and a retry worked. This confirmed the lesson that network errors and configuration errors must be told apart.
+- Opening a new terminal starts in the home folder, not in the project folder, so Git reported `not a git repository`. Always `cd` into the project first.
+- Feature work was done on a separate branch and merged through a Pull Request, which keeps `main` stable.
